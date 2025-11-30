@@ -4,6 +4,9 @@ export * from "./user";
 // Value Objects - Place
 export * from "./place";
 
+// Value Objects - Category
+export * from "./category";
+
 // Value Objects - Collection
 export * from "./collection";
 

@@ -9,6 +9,7 @@ erDiagram
         text email UK "Email (Unique)"
         boolean email_verified "Email Verified?"
         text image "Profile Image URL (Nullable)"
+        boolean is_anonymous "Anonymous User Flag"
         integer created_at "Timestamp (ms)"
         integer updated_at "Updated Timestamp (ms)"
     }
@@ -76,14 +77,27 @@ erDiagram
     }
 
     %% ==========================================
-    %% 3. コレクション機能 (My Collection)
+    %% 3. カテゴリー機能 (Categories) - ログインユーザー専用
+    %% ==========================================
+    %% ユーザーが定義するカテゴリー（コレクションのグルーピング用）
+    categories {
+        text category_id PK "UUID (gen_random_uuid)"
+        text user_id FK "Owner User ID"
+        text name "Category Name (e.g. 'カフェ', 'レストラン')"
+        text emoji "Category Emoji (Nullable, e.g. '☕')"
+        integer display_order "Sort Order"
+        integer created_at "Timestamp (ms)"
+    }
+
+    %% ==========================================
+    %% 4. コレクション機能 (My Collection)
     %% ==========================================
     %% ユーザーが作成するタブ/フォルダ
     collections {
         text collection_id PK "UUID (gen_random_uuid)"
         text user_id FK "Owner User ID"
+        text category_id FK "Category ID (Nullable - null for anonymous users)"
         text name "Tab Name (e.g. 'Date Night')"
-        text icon_emoji "Optional Emoji (Nullable)"
         integer display_order "Sort Order"
         boolean is_default "Is System Default?"
         integer created_at "Timestamp (ms)"
@@ -105,7 +119,7 @@ erDiagram
     }
 
     %% ==========================================
-    %% 4. シェア機能 (Social Sharing)
+    %% 5. シェア機能 (Social Sharing)
     %% ==========================================
     %% 共有パッケージ（URL発行単位）
     shared_packs {
@@ -126,7 +140,7 @@ erDiagram
     }
 
     %% ==========================================
-    %% 5. 行動ログ (User Actions)
+    %% 6. 行動ログ (User Actions)
     %% ==========================================
     %% スワイプ履歴（二度と表示しない制御 & 好み学習用）
     user_actions {
@@ -146,9 +160,13 @@ erDiagram
     users ||--o{ accounts : "has"
 
     %% User Relations
+    users ||--o{ categories : "defines"
     users ||--o{ collections : "owns"
     users ||--o{ shared_packs : "creates"
     users ||--o{ user_actions : "logs"
+
+    %% Category Relations
+    categories ||--o{ collections : "groups"
 
     %% Place Relations
     places ||--|| place_details_cache : "has details"
@@ -166,3 +184,16 @@ erDiagram
     %% シェアパックが消えてもコレクションアイテムは残る (SET NULL)
     shared_packs |o--o{ collection_items : "source of"
 ```
+
+## 匿名ユーザー vs ログインユーザー
+
+| 機能 | 匿名ユーザー | ログインユーザー |
+|------|-------------|-----------------|
+| コレクション作成 | ✅ | ✅ |
+| 場所の保存 | ✅ | ✅ |
+| カテゴリー作成・編集 | ❌ | ✅ |
+| コレクションにカテゴリー設定 | ❌ | ✅ |
+| シェアパック作成 | ❌ | ✅ |
+| アカウント連携 | → ログインに変換 | - |
+
+匿名ユーザーがGoogle OAuthでサインインすると、`onLinkAccount`コールバックにより既存のデータ（collections, user_actions）が自動的に新アカウントに移行されます。

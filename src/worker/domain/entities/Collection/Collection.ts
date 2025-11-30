@@ -1,13 +1,32 @@
 import { z } from "zod";
 import { UserId } from "../../value-object/user";
-import { CollectionId, CollectionName, DisplayOrder } from "../../value-object/collection";
+import { CategoryId } from "../../value-object/category";
+import {
+  CollectionId,
+  CollectionName,
+  DisplayOrder,
+} from "../../value-object/collection";
 
 const collectionSchema = z.object({
-  collectionId: z.custom<CollectionId>((val) => val instanceof CollectionId, "Invalid collection ID"),
+  collectionId: z.custom<CollectionId>(
+    (val) => val instanceof CollectionId,
+    "Invalid collection ID"
+  ),
   userId: z.custom<UserId>((val) => val instanceof UserId, "Invalid user ID"),
-  name: z.custom<CollectionName>((val) => val instanceof CollectionName, "Invalid collection name"),
-  iconEmoji: z.string().nullable(),
-  displayOrder: z.custom<DisplayOrder>((val) => val instanceof DisplayOrder, "Invalid display order"),
+  categoryId: z
+    .custom<CategoryId>(
+      (val) => val instanceof CategoryId,
+      "Invalid category ID"
+    )
+    .nullable(),
+  name: z.custom<CollectionName>(
+    (val) => val instanceof CollectionName,
+    "Invalid collection name"
+  ),
+  displayOrder: z.custom<DisplayOrder>(
+    (val) => val instanceof DisplayOrder,
+    "Invalid display order"
+  ),
   isDefault: z.boolean(),
   createdAt: z.date(),
 });
@@ -16,8 +35,8 @@ export class Collection {
   private constructor(
     public readonly collectionId: CollectionId,
     public readonly userId: UserId,
+    public readonly categoryId: CategoryId | null,
     public readonly name: CollectionName,
-    public readonly iconEmoji: string | null,
     public readonly displayOrder: DisplayOrder,
     public readonly isDefault: boolean,
     public readonly createdAt: Date
@@ -27,7 +46,7 @@ export class Collection {
     collectionId: CollectionId,
     userId: UserId,
     name: CollectionName,
-    iconEmoji: string | null = null,
+    categoryId: CategoryId | null = null,
     displayOrder: DisplayOrder = DisplayOrder.of(0),
     isDefault: boolean = false,
     createdAt: Date = new Date()
@@ -35,8 +54,8 @@ export class Collection {
     const validated = collectionSchema.parse({
       collectionId,
       userId,
+      categoryId,
       name,
-      iconEmoji,
       displayOrder,
       isDefault,
       createdAt,
@@ -44,8 +63,8 @@ export class Collection {
     return new Collection(
       validated.collectionId,
       validated.userId,
+      validated.categoryId,
       validated.name,
-      validated.iconEmoji,
       validated.displayOrder,
       validated.isDefault,
       validated.createdAt
@@ -56,7 +75,7 @@ export class Collection {
     collectionId: CollectionId,
     userId: UserId,
     name: CollectionName,
-    iconEmoji: string | null = null,
+    categoryId: CategoryId | null = null,
     displayOrder: DisplayOrder = DisplayOrder.of(0),
     isDefault: boolean = false,
     createdAt: Date = new Date()
@@ -64,8 +83,8 @@ export class Collection {
     const result = collectionSchema.safeParse({
       collectionId,
       userId,
+      categoryId,
       name,
-      iconEmoji,
       displayOrder,
       isDefault,
       createdAt,
@@ -76,8 +95,8 @@ export class Collection {
         value: new Collection(
           result.data.collectionId,
           result.data.userId,
+          result.data.categoryId,
           result.data.name,
-          result.data.iconEmoji,
           result.data.displayOrder,
           result.data.isDefault,
           result.data.createdAt
@@ -90,8 +109,8 @@ export class Collection {
   toJson(): {
     collectionId: string;
     userId: string;
+    categoryId: string | null;
     name: string;
-    iconEmoji: string | null;
     displayOrder: number;
     isDefault: boolean;
     createdAt: string;
@@ -99,8 +118,8 @@ export class Collection {
     return {
       collectionId: this.collectionId.value,
       userId: this.userId.value,
+      categoryId: this.categoryId?.value ?? null,
       name: this.name.value,
-      iconEmoji: this.iconEmoji,
       displayOrder: this.displayOrder.value,
       isDefault: this.isDefault,
       createdAt: this.createdAt.toISOString(),

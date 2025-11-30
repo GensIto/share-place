@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Collection } from "./Collection";
 import { UserId } from "../../value-object/user";
+import { CategoryId } from "../../value-object/category";
 import {
   CollectionId,
   CollectionName,
@@ -8,10 +9,12 @@ import {
 } from "../../value-object/collection";
 
 describe("Collection", () => {
-  const validCollectionId = CollectionId.of("11111111-1111-4111-8111-111111111111");
+  const validCollectionId = CollectionId.of(
+    "11111111-1111-4111-8111-111111111111"
+  );
   const validUserId = UserId.of("22222222-2222-4222-8222-222222222222");
+  const validCategoryId = CategoryId.of("33333333-3333-4333-8333-333333333333");
   const validName = CollectionName.of("Date Night");
-  const validIconEmoji = "❤️";
   const validDisplayOrder = DisplayOrder.of(0);
   const validCreatedAt = new Date("2024-01-01T00:00:00Z");
 
@@ -21,7 +24,7 @@ describe("Collection", () => {
         validCollectionId,
         validUserId,
         validName,
-        validIconEmoji,
+        validCategoryId,
         validDisplayOrder,
         true,
         validCreatedAt
@@ -29,8 +32,8 @@ describe("Collection", () => {
 
       expect(collection.collectionId).toBe(validCollectionId);
       expect(collection.userId).toBe(validUserId);
+      expect(collection.categoryId).toBe(validCategoryId);
       expect(collection.name).toBe(validName);
-      expect(collection.iconEmoji).toBe(validIconEmoji);
       expect(collection.displayOrder).toBe(validDisplayOrder);
       expect(collection.isDefault).toBe(true);
       expect(collection.createdAt).toBe(validCreatedAt);
@@ -38,13 +41,17 @@ describe("Collection", () => {
 
     it("デフォルトパラメータで有効なCollectionを作成できること", () => {
       const beforeCreate = new Date();
-      const collection = Collection.of(validCollectionId, validUserId, validName);
+      const collection = Collection.of(
+        validCollectionId,
+        validUserId,
+        validName
+      );
       const afterCreate = new Date();
 
       expect(collection.collectionId).toBe(validCollectionId);
       expect(collection.userId).toBe(validUserId);
+      expect(collection.categoryId).toBeNull();
       expect(collection.name).toBe(validName);
-      expect(collection.iconEmoji).toBeNull();
       expect(collection.displayOrder.value).toBe(0);
       expect(collection.isDefault).toBe(false);
       expect(collection.createdAt.getTime()).toBeGreaterThanOrEqual(
@@ -54,6 +61,20 @@ describe("Collection", () => {
         afterCreate.getTime()
       );
     });
+
+    it("categoryIdがnullでもCollectionを作成できること", () => {
+      const collection = Collection.of(
+        validCollectionId,
+        validUserId,
+        validName,
+        null,
+        validDisplayOrder,
+        false,
+        validCreatedAt
+      );
+
+      expect(collection.categoryId).toBeNull();
+    });
   });
 
   describe("tryOf", () => {
@@ -62,7 +83,7 @@ describe("Collection", () => {
         validCollectionId,
         validUserId,
         validName,
-        validIconEmoji,
+        validCategoryId,
         validDisplayOrder,
         false,
         validCreatedAt
@@ -72,6 +93,7 @@ describe("Collection", () => {
       if (result.success) {
         expect(result.value.collectionId).toBe(validCollectionId);
         expect(result.value.userId).toBe(validUserId);
+        expect(result.value.categoryId).toBe(validCategoryId);
         expect(result.value.name).toBe(validName);
       }
     });
@@ -83,7 +105,7 @@ describe("Collection", () => {
         validCollectionId,
         validUserId,
         validName,
-        validIconEmoji,
+        validCategoryId,
         validDisplayOrder,
         true,
         validCreatedAt
@@ -94,8 +116,8 @@ describe("Collection", () => {
       expect(json).toEqual({
         collectionId: "11111111-1111-4111-8111-111111111111",
         userId: "22222222-2222-4222-8222-222222222222",
+        categoryId: "33333333-3333-4333-8333-333333333333",
         name: "Date Night",
-        iconEmoji: "❤️",
         displayOrder: 0,
         isDefault: true,
         createdAt: validCreatedAt.toISOString(),
@@ -103,11 +125,15 @@ describe("Collection", () => {
     });
 
     it("null値を正しく処理できること", () => {
-      const collection = Collection.of(validCollectionId, validUserId, validName);
+      const collection = Collection.of(
+        validCollectionId,
+        validUserId,
+        validName
+      );
 
       const json = collection.toJson();
 
-      expect(json.iconEmoji).toBeNull();
+      expect(json.categoryId).toBeNull();
     });
   });
 

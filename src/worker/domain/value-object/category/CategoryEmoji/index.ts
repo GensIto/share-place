@@ -1,0 +1,1 @@
+export { CategoryEmoji } from "./CategoryEmoji";

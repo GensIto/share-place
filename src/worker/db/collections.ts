@@ -9,6 +9,7 @@ import {
 import { users } from "./auth";
 import { places } from "./places";
 import { sharedPacks } from "./sharedPacks";
+import { categories } from "./categories";
 
 // ==========================================
 // コレクション機能 (My Collection)
@@ -21,8 +22,10 @@ export const collections = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.userId, { onDelete: "cascade" }),
+    categoryId: text("category_id").references(() => categories.categoryId, {
+      onDelete: "set null",
+    }),
     name: text("name").notNull(),
-    iconEmoji: text("icon_emoji"),
     displayOrder: integer("display_order").default(0).notNull(),
     isDefault: integer("is_default", { mode: "boolean" })
       .default(false)
@@ -31,7 +34,10 @@ export const collections = sqliteTable(
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
   },
-  (table) => [index("collections_userId_idx").on(table.userId)]
+  (table) => [
+    index("collections_userId_idx").on(table.userId),
+    index("collections_categoryId_idx").on(table.categoryId),
+  ]
 );
 
 export const collectionItems = sqliteTable(
@@ -73,6 +79,10 @@ export const collectionRelations = relations(collections, ({ one, many }) => ({
   user: one(users, {
     fields: [collections.userId],
     references: [users.userId],
+  }),
+  category: one(categories, {
+    fields: [collections.categoryId],
+    references: [categories.categoryId],
   }),
   items: many(collectionItems),
 }));
