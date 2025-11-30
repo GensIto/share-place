@@ -1,1 +1,8 @@
 export { User } from "./User";
+export { Place } from "./Place";
+export { PlaceDetailsCache } from "./PlaceDetailsCache";
+export { Collection } from "./Collection";
+export { CollectionItem } from "./CollectionItem";
+export { SharedPack } from "./SharedPack";
+export { SharedPackItem } from "./SharedPackItem";
+export { UserAction } from "./UserAction";
