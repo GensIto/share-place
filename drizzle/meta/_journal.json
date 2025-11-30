@@ -5,22 +5,15 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1764479654310,
-      "tag": "0000_bored_weapon_omega",
+      "when": 1764508821635,
+      "tag": "0000_cultured_mandrill",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "6",
-      "when": 1764482535860,
-      "tag": "0001_unique_wendell_vaughn",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1764500702292,
-      "tag": "0002_absent_colonel_america",
+      "when": 1764508965559,
+      "tag": "0001_long_rocket_racer",
       "breakpoints": true
     }
   ]

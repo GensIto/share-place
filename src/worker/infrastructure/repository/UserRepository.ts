@@ -21,7 +21,7 @@ export class UserRepository implements IUserRepository {
       throw new Error(`User with email ${email.value} not found`);
     }
     return User.of(
-      UserId.of(user.id),
+      UserId.of(user.userId),
       UserName.of(user.name),
       EmailAddress.of(user.email),
       user.image,

@@ -17,9 +17,7 @@ import { sharedPacks } from "./sharedPacks";
 export const collections = sqliteTable(
   "collections",
   {
-    collectionId: text("collection_id")
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    collectionId: text("collection_id").primaryKey(),
     userId: text("user_id")
       .notNull()
       .references(() => users.userId, { onDelete: "cascade" }),

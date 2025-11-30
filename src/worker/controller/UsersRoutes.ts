@@ -30,7 +30,8 @@ export const usersRoutes = new Hono<Env>().get(
     const { email } = c.req.valid("json");
     const userRepository = c.get("userRepository");
     const findByEmailUseCase = new FindByEmailUseCase(userRepository);
+
     const user = await findByEmailUseCase.invoke(EmailAddress.of(email));
-    return c.json(user);
+    return c.json(user.toJson());
   }
 );

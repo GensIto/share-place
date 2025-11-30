@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-const collectionIdSchema = z
-  .string()
-  .uuid("Collection ID must be a valid UUID");
+const collectionIdSchema = z.uuid("Collection ID must be a valid UUID");
 
 export class CollectionId {
   private constructor(private readonly _value: string) {}
