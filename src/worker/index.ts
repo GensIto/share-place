@@ -5,6 +5,7 @@ import * as schema from "./db/schema";
 import { usersRoutes } from "./controller/UsersRoutes";
 import { placesRoutes } from "./controller/PlacesRoutes";
 import { categoriesRoutes } from "./controller/CategoriesRoutes";
+import { userActionsRoutes } from "./controller/UserActionsRoutes";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 
@@ -21,7 +22,8 @@ const routes = api
   .get("/", (c) => c.json({ message: "Hello, World!" }))
   .route("/users", usersRoutes)
   .route("/places", placesRoutes)
-  .route("/categories", categoriesRoutes);
+  .route("/categories", categoriesRoutes)
+  .route("/user-actions", userActionsRoutes);
 
 const app = new Hono<{ Bindings: Env }>()
   .route("/api", api)
