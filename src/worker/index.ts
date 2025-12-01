@@ -3,6 +3,7 @@ import { createAuth } from "./lib/auth";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/schema";
 import { usersRoutes } from "./controller/UsersRoutes";
+import { placesRoutes } from "./controller/PlacesRoutes";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 
@@ -14,9 +15,11 @@ api.on(["POST", "GET"], "/auth/*", (c) => {
   return betterAuth.handler(c.req.raw);
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = api
   .get("/", (c) => c.json({ message: "Hello, World!" }))
-  .route("/users", usersRoutes);
+  .route("/users", usersRoutes)
+  .route("/places", placesRoutes);
 
 const app = new Hono<{ Bindings: Env }>()
   .route("/api", api)
