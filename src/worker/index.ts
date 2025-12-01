@@ -4,6 +4,7 @@ import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./db/schema";
 import { usersRoutes } from "./controller/UsersRoutes";
 import { placesRoutes } from "./controller/PlacesRoutes";
+import { categoriesRoutes } from "./controller/CategoriesRoutes";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 
@@ -19,7 +20,8 @@ api.on(["POST", "GET"], "/auth/*", (c) => {
 const routes = api
   .get("/", (c) => c.json({ message: "Hello, World!" }))
   .route("/users", usersRoutes)
-  .route("/places", placesRoutes);
+  .route("/places", placesRoutes)
+  .route("/categories", categoriesRoutes);
 
 const app = new Hono<{ Bindings: Env }>()
   .route("/api", api)
