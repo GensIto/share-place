@@ -6,6 +6,7 @@ import { usersRoutes } from "./controller/UsersRoutes";
 import { placesRoutes } from "./controller/PlacesRoutes";
 import { categoriesRoutes } from "./controller/CategoriesRoutes";
 import { userActionsRoutes } from "./controller/UserActionsRoutes";
+import { sharedPacksRoutes } from "./controller/SharedPacksRoutes";
 import { logger } from "hono/logger";
 import { cors } from "hono/cors";
 
@@ -23,7 +24,8 @@ const routes = api
   .route("/users", usersRoutes)
   .route("/places", placesRoutes)
   .route("/categories", categoriesRoutes)
-  .route("/user-actions", userActionsRoutes);
+  .route("/user-actions", userActionsRoutes)
+  .route("/shared-packs", sharedPacksRoutes);
 
 const app = new Hono<{ Bindings: Env }>()
   .route("/api", api)
