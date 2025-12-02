@@ -1,14 +1,5 @@
+import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
-
-const geminiResponseSchema = z.object({
-  candidates: z.array(
-    z.object({
-      content: z.object({
-        parts: z.array(z.object({ text: z.string() })),
-      }),
-    })
-  ),
-});
 
 const extractedSearchParamsSchema = z.object({
   searchKeywords: z.array(z.string()),
@@ -29,11 +20,12 @@ export interface IGeminiService {
 }
 
 export class GeminiService implements IGeminiService {
-  private readonly baseUrl =
-    "https://generativelanguage.googleapis.com/v1beta/models";
+  private readonly client: GoogleGenAI;
   private readonly model = "gemini-1.5-flash";
 
-  constructor(private readonly apiKey: string) {}
+  constructor(apiKey: string) {
+    this.client = new GoogleGenAI({ apiKey });
+  }
 
   async extractSearchParams(query: string): Promise<ExtractedSearchParams> {
     const prompt = `あなたは場所検索のアシスタントです。ユーザーの自然言語クエリから、Google Places APIで検索するためのパラメータを抽出してください。
@@ -51,42 +43,16 @@ export class GeminiService implements IGeminiService {
 
 利用可能なplaceTypes: restaurant, cafe, bar, bakery, meal_takeaway, meal_delivery, night_club, spa, gym, park, museum, shopping_mall, store`;
 
-    const response = await fetch(
-      `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 500,
-          },
-        }),
-      }
-    );
+    const response = await this.client.models.generateContent({
+      model: this.model,
+      contents: prompt,
+      config: {
+        temperature: 0.2,
+        maxOutputTokens: 500,
+      },
+    });
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${error}`);
-    }
-
-    const json = await response.json();
-    const parseResult = geminiResponseSchema.safeParse(json);
-
-    if (!parseResult.success) {
-      throw new Error(
-        `Invalid Gemini API response: ${parseResult.error.message}`
-      );
-    }
-
-    const text = parseResult.data.candidates[0]?.content?.parts[0]?.text;
+    const text = response.text;
     if (!text) {
       throw new Error("No response from Gemini API");
     }
