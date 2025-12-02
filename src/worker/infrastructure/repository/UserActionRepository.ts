@@ -36,6 +36,7 @@ export interface IUserActionRepository {
     actions: UserActionWithPlace[];
     totalCount: number;
   }>;
+  findNopedPlaceIds(userId: UserId): Promise<PlaceId[]>;
 }
 
 export class UserActionRepository implements IUserActionRepository {
@@ -116,6 +117,21 @@ export class UserActionRepository implements IUserActionRepository {
       })),
       totalCount: countResult?.count ?? 0,
     };
+  }
+
+  async findNopedPlaceIds(userId: UserId): Promise<PlaceId[]> {
+    const results = await this.db
+      .select({ placeId: userActions.placeId })
+      .from(userActions)
+      .where(
+        and(
+          eq(userActions.userId, userId.value),
+          eq(userActions.actionType, "NOPE")
+        )
+      )
+      .all();
+
+    return results.map((r) => PlaceId.of(r.placeId));
   }
 
   private toEntity(row: typeof userActions.$inferSelect): UserAction {

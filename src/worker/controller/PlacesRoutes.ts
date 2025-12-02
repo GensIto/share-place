@@ -4,21 +4,33 @@ import { Hono } from "hono";
 import { createFactory } from "hono/factory";
 import { z } from "zod";
 import { PlaceRepository } from "../infrastructure/repository/PlaceRepository";
+import { UserActionRepository } from "../infrastructure/repository/UserActionRepository";
 import { UpsertPlaceUseCase } from "../usecase/places/UpsertPlaceUseCase";
 import { GetPlaceDetailUseCase } from "../usecase/places/GetPlaceDetailUseCase";
+import { SearchPlacesNearbyUseCase } from "../usecase/places/SearchPlacesNearbyUseCase";
+import { SearchPlacesWithAiUseCase } from "../usecase/places/SearchPlacesWithAiUseCase";
+import { GooglePlacesService } from "../infrastructure/service/GooglePlacesService";
+import { GeminiService } from "../infrastructure/service/GeminiService";
+import { requireAuth } from "../middleware";
 import * as schema from "../db/schema";
 
 type Env = {
-  Bindings: { DB: D1Database };
-  Variables: { placeRepository: PlaceRepository };
+  Bindings: { DB: D1Database } & Cloudflare.Env;
+  Variables: {
+    placeRepository: PlaceRepository;
+    userActionRepository: UserActionRepository;
+    userId: string;
+  };
 };
 
 const factory = createFactory<Env>();
 
-const injectPlaceRepository = factory.createMiddleware(async (c, next) => {
+const injectRepositories = factory.createMiddleware(async (c, next) => {
   const database = drizzle(c.env.DB, { schema });
   const placeRepository = new PlaceRepository(database);
+  const userActionRepository = new UserActionRepository(database);
   c.set("placeRepository", placeRepository);
+  c.set("userActionRepository", userActionRepository);
   await next();
 });
 
@@ -40,10 +52,117 @@ export const upsertPlaceSchema = z.object({
     .optional(),
 });
 
+const searchNearbySchema = z.object({
+  location: z.object({
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+  }),
+  radius: z.number().min(1).max(50000).optional().default(1000),
+  type: z.string().optional(),
+  keyword: z.string().optional(),
+  limit: z.number().int().min(1).max(20).optional().default(20),
+});
+
+const searchAiSchema = z.object({
+  query: z.string().min(1).max(500),
+  location: z.object({
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+  }),
+  radius: z.number().min(1).max(50000).optional().default(5000),
+  limit: z.number().int().min(1).max(20).optional().default(20),
+});
+
 export const placesRoutes = new Hono<Env>()
   .post(
+    "/search/nearby",
+    injectRepositories,
+    requireAuth,
+    zValidator("json", searchNearbySchema),
+    async (c) => {
+      const input = c.req.valid("json");
+      const userId = c.get("userId");
+      const placeRepository = c.get("placeRepository");
+      const userActionRepository = c.get("userActionRepository");
+
+      const googlePlacesApiKey = c.env.VITE_GOOGLE_MAPS_PLATFORM_SECRET;
+      if (!googlePlacesApiKey) {
+        return c.json(
+          {
+            error: "CONFIG_ERROR",
+            message: "Google Places API key is not configured",
+          },
+          500
+        );
+      }
+
+      const googlePlacesService = new GooglePlacesService(googlePlacesApiKey);
+      const useCase = new SearchPlacesNearbyUseCase(
+        placeRepository,
+        userActionRepository,
+        googlePlacesService
+      );
+
+      const result = await useCase.invoke({
+        userId,
+        latitude: input.location.latitude,
+        longitude: input.location.longitude,
+        radius: input.radius,
+        type: input.type,
+        keyword: input.keyword,
+        limit: input.limit,
+      });
+
+      return c.json(result);
+    }
+  )
+
+  .post(
+    "/search/ai",
+    injectRepositories,
+    requireAuth,
+    zValidator("json", searchAiSchema),
+    async (c) => {
+      const input = c.req.valid("json");
+      const userId = c.get("userId");
+      const placeRepository = c.get("placeRepository");
+      const userActionRepository = c.get("userActionRepository");
+
+      const googlePlacesApiKey = c.env.VITE_GOOGLE_MAPS_PLATFORM_SECRET;
+      const geminiApiKey = c.env.VITE_GOOGLE_GEMINI_SECRET;
+
+      if (!googlePlacesApiKey || !geminiApiKey) {
+        return c.json(
+          { error: "CONFIG_ERROR", message: "API keys are not configured" },
+          500
+        );
+      }
+
+      const googlePlacesService = new GooglePlacesService(googlePlacesApiKey);
+      const geminiService = new GeminiService(geminiApiKey);
+      const useCase = new SearchPlacesWithAiUseCase(
+        placeRepository,
+        userActionRepository,
+        googlePlacesService,
+        geminiService
+      );
+
+      const result = await useCase.invoke({
+        userId,
+        query: input.query,
+        latitude: input.location.latitude,
+        longitude: input.location.longitude,
+        radius: input.radius,
+        limit: input.limit,
+      });
+
+      return c.json(result);
+    }
+  )
+
+  .post(
     "/",
-    injectPlaceRepository,
+    injectRepositories,
     zValidator("json", upsertPlaceSchema),
     async (c) => {
       const input = c.req.valid("json");
@@ -66,7 +185,7 @@ export const placesRoutes = new Hono<Env>()
 
   .get(
     "/:placeId",
-    injectPlaceRepository,
+    injectRepositories,
     zValidator(
       "param",
       z.object({
