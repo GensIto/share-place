@@ -15,6 +15,20 @@
       "when": 1764511578377,
       "tag": "0001_clear_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1764686403252,
+      "tag": "0002_steady_longshot",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1764848852065,
+      "tag": "0003_great_captain_midlands",
+      "breakpoints": true
     }
   ]
 }

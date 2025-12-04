@@ -12,7 +12,7 @@ export type UserActionWithPlace = {
   userAction: UserAction;
   place: {
     name: string;
-    cachedImageUrl: string | null;
+    photoReference: string | null; // photo reference（画像URLではなく参照のみ）
   } | null;
 };
 
@@ -85,7 +85,7 @@ export class UserActionRepository implements IUserActionRepository {
           userAction: userActions,
           place: {
             name: placeDetailsCache.name,
-            cachedImageUrl: placeDetailsCache.cachedImageUrl,
+            photoReference: placeDetailsCache.photoReference,
           },
         })
         .from(userActions)
@@ -111,7 +111,7 @@ export class UserActionRepository implements IUserActionRepository {
         place: r.place?.name
           ? {
               name: r.place.name,
-              cachedImageUrl: r.place.cachedImageUrl,
+              photoReference: r.place.photoReference,
             }
           : null,
       })),

@@ -16,12 +16,11 @@ export type UpsertPlaceInput = {
   details?: {
     name: string;
     address?: string | null;
-    cachedImageUrl?: string | null;
+    photoReference?: string | null;
     rating?: number | null;
     reviewCount?: number | null;
     priceLevel?: number | null;
     categoryTag?: string | null;
-    rawJson?: string | null;
   };
 };
 
@@ -52,7 +51,7 @@ export class UpsertPlaceUseCase {
         placeId,
         input.details.name,
         input.details.address ?? null,
-        input.details.cachedImageUrl ?? null,
+        input.details.photoReference ?? null,
         input.details.rating != null ? Rating.of(input.details.rating) : null,
         input.details.reviewCount ?? null,
         input.details.priceLevel != null
@@ -61,7 +60,6 @@ export class UpsertPlaceUseCase {
         input.details.categoryTag != null
           ? CategoryTag.of(input.details.categoryTag)
           : null,
-        input.details.rawJson ?? null,
         new Date()
       );
 

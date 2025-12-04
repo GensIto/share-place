@@ -36,7 +36,7 @@ export type SharedPackWithCreator = {
       address: string | null;
       latitude: number;
       longitude: number;
-      cachedImageUrl: string | null;
+      photoReference: string | null; // photo reference（画像URLではなく参照のみ）
       rating: number | null;
       reviewCount: number | null;
       priceLevel: number | null;
@@ -174,7 +174,7 @@ export class SharedPackRepository implements ISharedPackRepository {
               address: row.place_details_cache.address,
               latitude: row.places?.latitude ?? 0,
               longitude: row.places?.longitude ?? 0,
-              cachedImageUrl: row.place_details_cache.cachedImageUrl,
+              photoReference: row.place_details_cache.photoReference,
               rating: row.place_details_cache.rating,
               reviewCount: row.place_details_cache.reviewCount,
               priceLevel: row.place_details_cache.priceLevel,
@@ -232,9 +232,9 @@ export class SharedPackRepository implements ISharedPackRepository {
         title: pack.title,
         message: pack.message,
         itemCount: allItems.length,
-        thumbnails: itemsWithThumbnails
-          .map((item) => item.place_details_cache?.cachedImageUrl)
-          .filter((url): url is string => url !== null),
+        // サムネイルはphotoReferenceから生成する必要があるが、
+        // リポジトリ層では画像URLを生成しない（UseCase層で行う）
+        thumbnails: [], // UseCase層でphotoReferenceから画像URLを生成
         createdAt: pack.createdAt,
       });
     }

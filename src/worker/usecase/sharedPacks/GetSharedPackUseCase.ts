@@ -1,6 +1,7 @@
 import { HTTPException } from "hono/http-exception";
 import { ISharedPackRepository } from "../../infrastructure/repository/SharedPackRepository";
 import { ShareToken } from "../../domain/value-object/sharedPack";
+import { IGooglePlacesService } from "../../infrastructure/service/GooglePlacesService";
 
 export type GetSharedPackOutput = {
   shareToken: string;
@@ -30,7 +31,10 @@ export type GetSharedPackOutput = {
 };
 
 export class GetSharedPackUseCase {
-  constructor(private readonly sharedPackRepository: ISharedPackRepository) {}
+  constructor(
+    private readonly sharedPackRepository: ISharedPackRepository,
+    private readonly googlePlacesService: IGooglePlacesService
+  ) {}
 
   async invoke(shareTokenValue: string): Promise<GetSharedPackOutput> {
     const shareToken = ShareToken.of(shareTokenValue);
@@ -51,20 +55,27 @@ export class GetSharedPackUseCase {
       createdAt: result.sharedPack.createdAt.toISOString(),
       items: result.items
         .filter((item) => item.placeDetails !== null)
-        .map((item) => ({
-          placeId: item.placeId,
-          name: item.placeDetails!.name,
-          address: item.placeDetails!.address,
-          latitude: item.placeDetails!.latitude,
-          longitude: item.placeDetails!.longitude,
-          cachedImageUrl: item.placeDetails!.cachedImageUrl,
-          rating: item.placeDetails!.rating,
-          reviewCount: item.placeDetails!.reviewCount,
-          priceLevel: item.placeDetails!.priceLevel,
-          categoryTag: item.placeDetails!.categoryTag,
-          publicComment: item.publicComment,
-          sortOrder: item.sortOrder,
-        })),
+        .map((item) => {
+          // photoReferenceから画像URLを生成（規約準拠のため）
+          const imageUrl = item.placeDetails!.photoReference
+            ? this.googlePlacesService.getPhotoUrl(item.placeDetails!.photoReference)
+            : null;
+
+          return {
+            placeId: item.placeId,
+            name: item.placeDetails!.name,
+            address: item.placeDetails!.address,
+            latitude: item.placeDetails!.latitude,
+            longitude: item.placeDetails!.longitude,
+            cachedImageUrl: imageUrl,
+            rating: item.placeDetails!.rating,
+            reviewCount: item.placeDetails!.reviewCount,
+            priceLevel: item.placeDetails!.priceLevel,
+            categoryTag: item.placeDetails!.categoryTag,
+            publicComment: item.publicComment,
+            sortOrder: item.sortOrder,
+          };
+        }),
       itemCount: result.items.length,
     };
   }

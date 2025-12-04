@@ -79,7 +79,7 @@ export class PlaceRepository implements IPlaceRepository {
       PlaceId.of(result.place_details_cache.placeId),
       result.place_details_cache.name,
       result.place_details_cache.address,
-      result.place_details_cache.cachedImageUrl,
+      result.place_details_cache.photoReference,
       result.place_details_cache.rating != null
         ? Rating.of(result.place_details_cache.rating)
         : null,
@@ -90,7 +90,6 @@ export class PlaceRepository implements IPlaceRepository {
       result.place_details_cache.categoryTag != null
         ? CategoryTag.of(result.place_details_cache.categoryTag)
         : null,
-      result.place_details_cache.rawJson,
       result.place_details_cache.lastFetchedAt
     );
 
@@ -131,12 +130,11 @@ export class PlaceRepository implements IPlaceRepository {
         placeId: details.placeId.value,
         name: details.name,
         address: details.address,
-        cachedImageUrl: details.cachedImageUrl,
+        photoReference: details.photoReference,
         rating: details.rating?.value ?? null,
         reviewCount: details.reviewCount,
         priceLevel: details.priceLevel?.value ?? null,
         categoryTag: details.categoryTag?.value ?? null,
-        rawJson: details.rawJson,
         lastFetchedAt: details.lastFetchedAt,
       })
       .onConflictDoUpdate({
@@ -144,12 +142,11 @@ export class PlaceRepository implements IPlaceRepository {
         set: {
           name: details.name,
           address: details.address,
-          cachedImageUrl: details.cachedImageUrl,
+          photoReference: details.photoReference,
           rating: details.rating?.value ?? null,
           reviewCount: details.reviewCount,
           priceLevel: details.priceLevel?.value ?? null,
           categoryTag: details.categoryTag?.value ?? null,
-          rawJson: details.rawJson,
           lastFetchedAt: details.lastFetchedAt,
         },
       })
@@ -164,12 +161,11 @@ export class PlaceRepository implements IPlaceRepository {
       PlaceId.of(result.placeId),
       result.name,
       result.address,
-      result.cachedImageUrl,
+      result.photoReference,
       result.rating != null ? Rating.of(result.rating) : null,
       result.reviewCount,
       result.priceLevel != null ? PriceLevel.of(result.priceLevel) : null,
       result.categoryTag != null ? CategoryTag.of(result.categoryTag) : null,
-      result.rawJson,
       result.lastFetchedAt
     );
   }

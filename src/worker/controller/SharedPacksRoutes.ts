@@ -9,6 +9,7 @@ import { CreateSharedPackUseCase } from "../usecase/sharedPacks/CreateSharedPack
 import { GetSharedPackUseCase } from "../usecase/sharedPacks/GetSharedPackUseCase";
 import { GetMySharedPacksUseCase } from "../usecase/sharedPacks/GetMySharedPacksUseCase";
 import { requireAuth } from "../middleware";
+import { GooglePlacesService } from "../infrastructure/service/GooglePlacesService";
 import * as schema from "../db/schema";
 
 type Env = {
@@ -135,7 +136,19 @@ export const sharedPacksRoutes = new Hono<Env>()
       const { shareToken } = c.req.valid("param");
       const sharedPackRepository = c.get("sharedPackRepository");
 
-      const useCase = new GetSharedPackUseCase(sharedPackRepository);
+      const googlePlacesApiKey = c.env.VITE_GOOGLE_MAPS_PLATFORM_SECRET;
+      if (!googlePlacesApiKey) {
+        return c.json(
+          {
+            error: "CONFIG_ERROR",
+            message: "Google Places API key is not configured",
+          },
+          500
+        );
+      }
+
+      const googlePlacesService = new GooglePlacesService(googlePlacesApiKey);
+      const useCase = new GetSharedPackUseCase(sharedPackRepository, googlePlacesService);
 
       const result = await useCase.invoke(shareToken);
 

@@ -99,27 +99,31 @@ export class SearchPlacesWithAiUseCase {
 
       const place = Place.of(placeId, lat, lng);
 
-      const photoUrl = googlePlace.photos?.[0]
-        ? this.googlePlacesService.getPhotoUrl(googlePlace.photos[0].name)
-        : null;
+      // Google Places APIのphoto reference（photo name）のみを保存
+      // 画像URLは都度APIから取得する（規約準拠のため）
+      const photoReference = googlePlace.photos?.[0]?.name ?? null;
 
       const priceLevel = priceLevelToNumber(googlePlace.priceLevel);
       const details = PlaceDetailsCache.of(
         placeId,
         googlePlace.displayName.text,
         googlePlace.formattedAddress ?? null,
-        photoUrl,
+        photoReference,
         googlePlace.rating ? Rating.of(googlePlace.rating) : null,
         googlePlace.userRatingCount ?? null,
         priceLevel !== null ? PriceLevel.of(priceLevel) : null,
         googlePlace.primaryTypeDisplayName?.text
           ? CategoryTag.of(googlePlace.primaryTypeDisplayName.text)
           : null,
-        JSON.stringify(googlePlace),
         new Date()
       );
 
       await this.placeRepository.upsertWithDetails(place, details);
+
+      // 画像URLは都度APIから取得する（規約準拠のため）
+      const imageUrl = photoReference
+        ? this.googlePlacesService.getPhotoUrl(photoReference)
+        : null;
 
       places.push({
         placeId: googlePlace.id,
@@ -127,7 +131,7 @@ export class SearchPlacesWithAiUseCase {
         address: googlePlace.formattedAddress ?? null,
         latitude: googlePlace.location.latitude,
         longitude: googlePlace.location.longitude,
-        cachedImageUrl: photoUrl,
+        cachedImageUrl: imageUrl,
         rating: googlePlace.rating ?? null,
         reviewCount: googlePlace.userRatingCount ?? null,
         priceLevel,

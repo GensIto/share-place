@@ -42,12 +42,12 @@ export const upsertPlaceSchema = z.object({
     .object({
       name: z.string().min(1),
       address: z.string().nullable().optional(),
-      cachedImageUrl: z.url().nullable().optional(),
+      photoReference: z.string().nullable().optional(), // photo reference（画像URLではなく参照のみ）
       rating: z.number().min(0).max(5).nullable().optional(),
       reviewCount: z.number().int().min(0).nullable().optional(),
       priceLevel: z.number().int().min(0).max(4).nullable().optional(),
       categoryTag: z.string().nullable().optional(),
-      rawJson: z.string().nullable().optional(),
+      // rawJsonフィールドを削除（Google Maps Platform利用規約に準拠）
     })
     .optional(),
 });
@@ -205,7 +205,20 @@ export const placesRoutes = new Hono<Env>()
       const { placeId } = c.req.valid("param");
       const { refresh } = c.req.valid("query");
       const placeRepository = c.get("placeRepository");
-      const useCase = new GetPlaceDetailUseCase(placeRepository);
+      
+      const googlePlacesApiKey = c.env.VITE_GOOGLE_MAPS_PLATFORM_SECRET;
+      if (!googlePlacesApiKey) {
+        return c.json(
+          {
+            error: "CONFIG_ERROR",
+            message: "Google Places API key is not configured",
+          },
+          500
+        );
+      }
+
+      const googlePlacesService = new GooglePlacesService(googlePlacesApiKey);
+      const useCase = new GetPlaceDetailUseCase(placeRepository, googlePlacesService);
 
       // TODO: If refresh is true, fetch from Google Places API
       // For now, just return from cache
@@ -226,6 +239,8 @@ export const placesRoutes = new Hono<Env>()
         ...result.place.toJson(),
         ...(result.details && {
           ...result.details.toJson(),
+          // 画像URLは都度APIから取得（規約準拠のため）
+          cachedImageUrl: result.imageUrl,
         }),
       });
     }
