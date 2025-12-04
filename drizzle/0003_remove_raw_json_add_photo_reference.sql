@@ -21,3 +21,4 @@ ALTER TABLE `__new_place_details_cache` RENAME TO `place_details_cache`;
 --> statement-breakpoint
 PRAGMA foreign_keys=ON;
 
+
