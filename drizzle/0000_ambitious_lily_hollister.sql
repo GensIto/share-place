@@ -11,7 +11,7 @@ CREATE TABLE `accounts` (
 	`scope` text,
 	`password` text,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	`updated_at` integer NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
@@ -21,7 +21,7 @@ CREATE TABLE `sessions` (
 	`expires_at` integer NOT NULL,
 	`token` text NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	`updated_at` integer NOT NULL,
+	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`ip_address` text,
 	`user_agent` text,
 	`user_id` text NOT NULL,
@@ -56,12 +56,11 @@ CREATE TABLE `place_details_cache` (
 	`place_id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`address` text,
-	`cached_image_url` text,
+	`photo_reference` text,
 	`rating` real,
 	`review_count` integer,
 	`price_level` integer,
 	`category_tag` text,
-	`raw_json` text,
 	`last_fetched_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	FOREIGN KEY (`place_id`) REFERENCES `places`(`place_id`) ON UPDATE no action ON DELETE cascade
 );
@@ -95,6 +94,17 @@ CREATE TABLE `shared_packs` (
 );
 --> statement-breakpoint
 CREATE INDEX `shared_packs_creatorId_idx` ON `shared_packs` (`creator_id`);--> statement-breakpoint
+CREATE TABLE `categories` (
+	`category_id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`name` text NOT NULL,
+	`emoji` text,
+	`display_order` integer DEFAULT 0 NOT NULL,
+	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE INDEX `categories_userId_idx` ON `categories` (`user_id`);--> statement-breakpoint
 CREATE TABLE `collection_items` (
 	`collection_item_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`collection_id` text NOT NULL,
@@ -113,15 +123,17 @@ CREATE UNIQUE INDEX `collection_items_unique_idx` ON `collection_items` (`collec
 CREATE TABLE `collections` (
 	`collection_id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
+	`category_id` text,
 	`name` text NOT NULL,
-	`icon_emoji` text,
 	`display_order` integer DEFAULT 0 NOT NULL,
 	`is_default` integer DEFAULT false NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`category_id`) REFERENCES `categories`(`category_id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
 CREATE INDEX `collections_userId_idx` ON `collections` (`user_id`);--> statement-breakpoint
+CREATE INDEX `collections_categoryId_idx` ON `collections` (`category_id`);--> statement-breakpoint
 CREATE TABLE `user_actions` (
 	`user_action_id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` text NOT NULL,

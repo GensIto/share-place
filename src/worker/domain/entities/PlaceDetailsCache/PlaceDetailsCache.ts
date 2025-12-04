@@ -2,31 +2,16 @@ import { z } from "zod";
 import { PlaceId, Rating, PriceLevel, CategoryTag } from "../../value-object";
 
 const placeDetailsCacheSchema = z.object({
-  placeId: z.custom<PlaceId>(
-    (val) => val instanceof PlaceId,
-    "Invalid place ID"
-  ),
+  placeId: z.custom<PlaceId>((val) => val instanceof PlaceId, "Invalid place ID"),
   name: z.string().min(1, "Name cannot be empty"),
   address: z.string().nullable(),
   // Google Places APIのphoto reference（画像URLではなく参照のみ保存）
   // 画像URLは都度APIから取得する（規約準拠のため）
   photoReference: z.string().nullable(),
-  rating: z
-    .custom<Rating>((val) => val instanceof Rating, "Invalid rating")
-    .nullable(),
+  rating: z.custom<Rating>((val) => val instanceof Rating, "Invalid rating").nullable(),
   reviewCount: z.number().int().min(0).nullable(),
-  priceLevel: z
-    .custom<PriceLevel>(
-      (val) => val instanceof PriceLevel,
-      "Invalid price level"
-    )
-    .nullable(),
-  categoryTag: z
-    .custom<CategoryTag>(
-      (val) => val instanceof CategoryTag,
-      "Invalid category tag"
-    )
-    .nullable(),
+  priceLevel: z.custom<PriceLevel>((val) => val instanceof PriceLevel, "Invalid price level").nullable(),
+  categoryTag: z.custom<CategoryTag>((val) => val instanceof CategoryTag, "Invalid category tag").nullable(),
   // rawJsonフィールドを削除（Google Maps Platform利用規約に準拠）
   lastFetchedAt: z.date(),
 });
@@ -89,9 +74,7 @@ export class PlaceDetailsCache {
     priceLevel: PriceLevel | null = null,
     categoryTag: CategoryTag | null = null,
     lastFetchedAt: Date = new Date()
-  ):
-    | { success: true; value: PlaceDetailsCache }
-    | { success: false; error: string } {
+  ): { success: true; value: PlaceDetailsCache } | { success: false; error: string } {
     const result = placeDetailsCacheSchema.safeParse({
       placeId,
       name,

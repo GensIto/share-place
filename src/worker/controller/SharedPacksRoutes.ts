@@ -148,10 +148,7 @@ export const sharedPacksRoutes = new Hono<Env>()
       }
 
       const googlePlacesService = new GooglePlacesService(googlePlacesApiKey);
-      const useCase = new GetSharedPackUseCase(
-        sharedPackRepository,
-        googlePlacesService
-      );
+      const useCase = new GetSharedPackUseCase(sharedPackRepository, googlePlacesService);
 
       const result = await useCase.invoke(shareToken);
 

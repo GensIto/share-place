@@ -58,9 +58,7 @@ export class GetSharedPackUseCase {
         .map((item) => {
           // photoReferenceから画像URLを生成（規約準拠のため）
           const imageUrl = item.placeDetails!.photoReference
-            ? this.googlePlacesService.getPhotoUrl(
-                item.placeDetails!.photoReference
-              )
+            ? this.googlePlacesService.getPhotoUrl(item.placeDetails!.photoReference)
             : null;
 
           return {
