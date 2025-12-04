@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A full-stack application built with React frontend and Hono backend, deployed on Cloudflare Workers with D1 (SQLite) database. Uses Better Auth for authentication.
+A full-stack application built with React frontend and Hono backend, deployed on Cloudflare Workers with D1 (SQLite) database. Uses Firebase Authentication for authentication.
 
 ## Commands
 
@@ -64,7 +64,7 @@ src/worker/
 - TanStack Router with file-based routing (`src/react-app/routes/`)
 - TanStack Query for data fetching
 - Hono RPC client for type-safe API calls (`src/react-app/lib/hono.ts`)
-- Better Auth client for authentication
+- Firebase Authentication client for authentication
 
 ### Type-Safe API Communication
 Backend exports `AppType` from `src/worker/index.ts`. Frontend uses Hono's `hc<AppType>()` for fully typed API calls.

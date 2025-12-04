@@ -1,11 +1,11 @@
-import { AuthView } from "@daveyplate/better-auth-ui";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { AuthForm } from "@/react-app/components/AuthForm";
 
 export const Route = createFileRoute("/auth/sign-in")({
   component: Signin,
   beforeLoad: async ({ context }) => {
-    if (context.accessToken) {
-      // throw redirect({ to: "/my-page", replace: true });
+    if (context.user) {
+      throw redirect({ to: "/", replace: true });
     }
   },
 });
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/auth/sign-in")({
 function Signin() {
   return (
     <div className='flex min-h-screen items-center justify-center'>
-      <AuthView pathname='sign-in' />
+      <AuthForm mode='sign-in' />
     </div>
   );
 }

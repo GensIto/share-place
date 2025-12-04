@@ -1,12 +1,23 @@
 import { z } from "zod";
 
 const userIdSchema = z.uuid("Invalid user ID format");
+// Firebase AuthのuidはUUID形式ではないため、別のバリデーションを使用
+const firebaseUserIdSchema = z.string().min(1).max(128);
 
 export class UserId {
   private constructor(private readonly _value: string) {}
 
   static of(value: string): UserId {
     const validated = userIdSchema.parse(value);
+    return new UserId(validated);
+  }
+
+  /**
+   * Firebase AuthのuidからUserIdを作成
+   * Firebase AuthのuidはUUID形式ではないため、専用のファクトリーメソッドを使用
+   */
+  static ofFirebase(value: string): UserId {
+    const validated = firebaseUserIdSchema.parse(value);
     return new UserId(validated);
   }
 

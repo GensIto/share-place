@@ -1,51 +1,17 @@
 ```mermaid
 erDiagram
     %% ==========================================
-    %% 1. ユーザー管理 (User Management) - Better Auth
+    %% 1. ユーザー管理 (User Management) - Firebase Auth
     %% ==========================================
+    %% 認証情報（セッション、アカウント、トークンなど）はFirebase側で管理されるため、
+    %% DBにはユーザーの基本情報のみを保存
     users {
-        text user_id PK "UUID / User ID"
+        text user_id PK "Firebase Auth UID"
         text name "Display Name"
         text email UK "Email (Unique)"
         boolean email_verified "Email Verified?"
         text image "Profile Image URL (Nullable)"
         boolean is_anonymous "Anonymous User Flag"
-        integer created_at "Timestamp (ms)"
-        integer updated_at "Updated Timestamp (ms)"
-    }
-
-    sessions {
-        text id PK "Session ID"
-        integer expires_at "Expiration Timestamp (ms)"
-        text token UK "Session Token (Unique)"
-        integer created_at "Timestamp (ms)"
-        integer updated_at "Updated Timestamp (ms)"
-        text ip_address "IP Address (Nullable)"
-        text user_agent "User Agent (Nullable)"
-        text user_id FK "User ID"
-    }
-
-    accounts {
-        text id PK "Account ID"
-        text account_id "Provider Account ID"
-        text provider_id "Provider (google, etc.)"
-        text user_id FK "User ID"
-        text access_token "Access Token (Nullable)"
-        text refresh_token "Refresh Token (Nullable)"
-        text id_token "ID Token (Nullable)"
-        integer access_token_expires_at "Access Token Expiration (Nullable)"
-        integer refresh_token_expires_at "Refresh Token Expiration (Nullable)"
-        text scope "OAuth Scope (Nullable)"
-        text password "Password (Nullable)"
-        integer created_at "Timestamp (ms)"
-        integer updated_at "Updated Timestamp (ms)"
-    }
-
-    verifications {
-        text id PK "Verification ID"
-        text identifier "Identifier"
-        text value "Verification Value"
-        integer expires_at "Expiration Timestamp (ms)"
         integer created_at "Timestamp (ms)"
         integer updated_at "Updated Timestamp (ms)"
     }
@@ -154,10 +120,6 @@ erDiagram
     %% ==========================================
     %% Relationships
     %% ==========================================
-
-    %% Better Auth Relations
-    users ||--o{ sessions : "has"
-    users ||--o{ accounts : "has"
 
     %% User Relations
     users ||--o{ categories : "defines"

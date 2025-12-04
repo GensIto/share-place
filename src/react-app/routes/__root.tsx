@@ -1,21 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/react-app/lib/betterAuth";
 import {
   Link,
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouteContext,
 } from "@tanstack/react-router";
+import { signOutAuth } from "@/react-app/lib/firebaseAuth";
 
 const RootLayout = () => {
-  const { data: session } = authClient.useSession();
   const router = useRouter();
+  const { user, isAnonymous } = useRouteContext({ from: "__root__" });
 
   const handleSignOut = async () => {
-    await authClient.signOut().then(() => {
-      router.invalidate();
-      router.navigate({ to: "/auth/sign-in" });
-    });
+    await signOutAuth();
+    router.invalidate();
+    router.navigate({ to: "/auth/sign-in" });
   };
 
   return (
@@ -27,8 +27,20 @@ const RootLayout = () => {
               <h1 className='text-base leading-6 text-foreground'>Home</h1>
             </div>
           </Link>
-          {session?.user?.email && (
-            <Button onClick={handleSignOut}>Sign Out</Button>
+          {user && (
+            <div className='flex items-center gap-2'>
+              {isAnonymous && (
+                <span className='text-sm text-muted-foreground'>
+                  匿名ユーザー
+                </span>
+              )}
+              {user.email && (
+                <span className='text-sm text-muted-foreground'>
+                  {user.email}
+                </span>
+              )}
+              <Button onClick={handleSignOut}>Sign Out</Button>
+            </div>
           )}
         </div>
       </div>
@@ -41,7 +53,9 @@ const RootLayout = () => {
 };
 
 export const Route = createRootRouteWithContext<{
-  accessToken?: string;
+  user?: import("firebase/auth").User | null;
+  idToken?: string | null;
+  isAnonymous?: boolean;
 }>()({
   component: RootLayout,
 });
