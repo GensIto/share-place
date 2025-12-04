@@ -15,6 +15,13 @@
       "when": 1764854711824,
       "tag": "0001_past_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1764856115141,
+      "tag": "0002_cooing_scarecrow",
+      "breakpoints": true
     }
   ]
 }

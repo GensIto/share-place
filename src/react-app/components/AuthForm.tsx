@@ -6,6 +6,7 @@ import {
 } from "@/react-app/lib/firebaseAuth";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { client } from "../lib/hono";
 
 interface AuthFormProps {
   mode: "sign-in" | "sign-up";
@@ -18,7 +19,16 @@ export function AuthForm({ mode }: AuthFormProps) {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      await signInWithGoogle();
+      const createdOauthUser = await signInWithGoogle();
+      const response = await client.users.$post({
+        json: {
+          userId: createdOauthUser.uid,
+          email: createdOauthUser.email ?? "",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to upsert user");
+      }
       toast.success("サインインしました");
       router.invalidate();
       router.navigate({ to: "/" });
@@ -34,7 +44,16 @@ export function AuthForm({ mode }: AuthFormProps) {
   const handleAnonymousAuth = async () => {
     setLoading(true);
     try {
-      await signInAnonymouslyAuth();
+      const createdAnonymousUser = await signInAnonymouslyAuth();
+      const response = await client.users.$post({
+        json: {
+          userId: createdAnonymousUser.uid,
+          email: createdAnonymousUser.email ?? "",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to upsert user");
+      }
       toast.success("匿名ユーザーとしてサインインしました");
       router.invalidate();
       router.navigate({ to: "/" });

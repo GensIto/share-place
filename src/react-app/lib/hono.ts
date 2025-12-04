@@ -6,7 +6,7 @@ import { getIdToken } from "./firebaseAuth";
  * Firebase認証トークン付きHonoクライアントを作成
  */
 export function createAuthenticatedClient() {
-  const client = hc<ApiType>("/", {
+  const client = hc<ApiType>("/api", {
     fetch: async (
       input: RequestInfo | URL,
       init?: RequestInit

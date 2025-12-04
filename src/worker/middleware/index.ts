@@ -19,7 +19,7 @@ const factory = createFactory<{
  */
 export const optionalAuth = factory.createMiddleware(async (c, next) => {
   const token = getFirebaseTokenFromRequest(c.req.raw.headers);
-  
+
   if (token) {
     try {
       const projectId = c.env.FIREBASE_PROJECT_ID;
@@ -48,10 +48,7 @@ export const requireAuth = factory.createMiddleware(async (c, next) => {
   const token = getFirebaseTokenFromRequest(c.req.raw.headers);
 
   if (!token) {
-    return c.json(
-      { error: "UNAUTHORIZED", message: "認証が必要です" },
-      401
-    );
+    return c.json({ error: "UNAUTHORIZED", message: "認証が必要です" }, 401);
   }
 
   try {
@@ -87,10 +84,7 @@ export const requireRegisteredAuth = factory.createMiddleware(
     const token = getFirebaseTokenFromRequest(c.req.raw.headers);
 
     if (!token) {
-      return c.json(
-        { error: "UNAUTHORIZED", message: "認証が必要です" },
-        401
-      );
+      return c.json({ error: "UNAUTHORIZED", message: "認証が必要です" }, 401);
     }
 
     try {
@@ -103,7 +97,7 @@ export const requireRegisteredAuth = factory.createMiddleware(
       }
 
       const payload = await verifyFirebaseToken(token, projectId);
-      
+
       // 匿名ユーザーを拒否
       if (isAnonymousUser(payload)) {
         return c.json(

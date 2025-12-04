@@ -8,7 +8,7 @@ import { FindByEmailUseCase } from "../usecase/users/FindByEmail";
 import { UpsertUserUseCase } from "../usecase/users/UpsertUserUseCase";
 import * as schema from "../db/schema";
 import { EmailAddress } from "../domain/value-object";
-import { requireAuth } from "../middleware";
+import { optionalAuth, requireAuth } from "../middleware";
 
 type Env = {
   Bindings: { DB: D1Database } & Cloudflare.Env;
@@ -30,11 +30,7 @@ const injectUserRepository = factory.createMiddleware(async (c, next) => {
 
 const upsertUserSchema = z.object({
   userId: z.string().min(1),
-  name: z.string().min(1).max(100),
-  email: z.string().email().nullable().optional(),
-  image: z.string().url().nullable().optional(),
-  isAnonymous: z.boolean().default(false),
-  emailVerified: z.boolean().default(false),
+  email: z.email(),
 });
 
 export const usersRoutes = new Hono<Env>()
@@ -52,6 +48,19 @@ export const usersRoutes = new Hono<Env>()
     }
   )
   .post(
+    "/",
+    optionalAuth,
+    injectUserRepository,
+    zValidator("json", upsertUserSchema),
+    async (c) => {
+      const input = c.req.valid("json");
+      const userRepository = c.get("userRepository");
+      const upsertUserUseCase = new UpsertUserUseCase(userRepository);
+      const user = await upsertUserUseCase.invoke(input);
+      return c.json(user.toJson());
+    }
+  )
+  .post(
     "/me",
     injectUserRepository,
     requireAuth,
@@ -60,7 +69,7 @@ export const usersRoutes = new Hono<Env>()
       const input = c.req.valid("json");
       const userRepository = c.get("userRepository");
       const userId = c.get("userId");
-      
+
       // 認証されたユーザーのIDとリクエストのuserIdが一致することを確認
       if (input.userId !== userId) {
         return c.json(
@@ -69,15 +78,10 @@ export const usersRoutes = new Hono<Env>()
         );
       }
 
-      const upsertUserUseCase = new UpsertUserUseCase(userRepository);
-      const user = await upsertUserUseCase.invoke({
-        userId: input.userId,
-        name: input.name,
-        email: input.email ?? null,
-        image: input.image ?? null,
-        isAnonymous: input.isAnonymous,
-        emailVerified: input.emailVerified,
-      });
+      const findByEmailUseCase = new FindByEmailUseCase(userRepository);
+      const user = await findByEmailUseCase.invoke(
+        EmailAddress.of(input.email)
+      );
 
       return c.json(user.toJson(), 200);
     }
