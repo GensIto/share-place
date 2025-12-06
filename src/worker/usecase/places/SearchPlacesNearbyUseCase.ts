@@ -65,7 +65,7 @@ export class SearchPlacesNearbyUseCase {
     } = input;
 
     const nopedPlaceIds = await this.userActionRepository.findNopedPlaceIds(
-      UserId.of(userId)
+      UserId.ofFirebase(userId)
     );
     const nopedPlaceIdSet = new Set(nopedPlaceIds.map((p) => p.value));
 

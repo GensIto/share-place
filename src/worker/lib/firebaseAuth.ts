@@ -4,7 +4,8 @@
  */
 
 interface FirebaseTokenPayload {
-  uid: string;
+  uid?: string;
+  sub?: string; // Firebase IDトークンではsubフィールドにユーザーIDが含まれる
   email?: string;
   email_verified?: boolean;
   name?: string;

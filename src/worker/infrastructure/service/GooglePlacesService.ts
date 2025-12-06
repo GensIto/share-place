@@ -139,8 +139,22 @@ export class GooglePlacesService implements IGooglePlacesService {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Google Places API error: ${response.status} - ${error}`);
+      const errorText = await response.text();
+      let errorMessage = `Google Places API error: ${response.status} - ${errorText}`;
+      
+      // 403エラーでAPIキーのリファラー制限の場合、より分かりやすいメッセージを表示
+      if (response.status === 403) {
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error?.details?.some((d: any) => d.reason === "API_KEY_HTTP_REFERRER_BLOCKED")) {
+            errorMessage = `Google Places APIキーの設定エラー: HTTPリファラー制限が有効になっています。サーバーサイド（Cloudflare Workers）から呼び出す場合は、Google Cloud ConsoleでAPIキーの制限を「IPアドレス」に変更するか、制限を解除してください。詳細: ${errorText}`;
+          }
+        } catch {
+          // JSONパースに失敗した場合は元のエラーメッセージを使用
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const json = await response.json();
@@ -206,8 +220,22 @@ export class GooglePlacesService implements IGooglePlacesService {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Google Places API error: ${response.status} - ${error}`);
+      const errorText = await response.text();
+      let errorMessage = `Google Places API error: ${response.status} - ${errorText}`;
+      
+      // 403エラーでAPIキーのリファラー制限の場合、より分かりやすいメッセージを表示
+      if (response.status === 403) {
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error?.details?.some((d: any) => d.reason === "API_KEY_HTTP_REFERRER_BLOCKED")) {
+            errorMessage = `Google Places APIキーの設定エラー: HTTPリファラー制限が有効になっています。サーバーサイド（Cloudflare Workers）から呼び出す場合は、Google Cloud ConsoleでAPIキーの制限を「IPアドレス」に変更するか、制限を解除してください。詳細: ${errorText}`;
+          }
+        } catch {
+          // JSONパースに失敗した場合は元のエラーメッセージを使用
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const json = await response.json();

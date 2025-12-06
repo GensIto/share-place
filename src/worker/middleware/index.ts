@@ -30,8 +30,12 @@ export const optionalAuth = factory.createMiddleware(async (c, next) => {
       }
 
       const payload = await verifyFirebaseToken(token, projectId);
-      c.set("userId", payload.uid);
-      c.set("isAnonymous", isAnonymousUser(payload));
+      // Firebase IDトークンではsubフィールドにユーザーIDが含まれる
+      const userId = payload.uid || payload.sub;
+      if (userId) {
+        c.set("userId", userId);
+        c.set("isAnonymous", isAnonymousUser(payload));
+      }
     } catch (error) {
       console.warn("Token verification failed:", error);
       // 検証に失敗しても続行（匿名利用を許可）
@@ -61,7 +65,21 @@ export const requireAuth = factory.createMiddleware(async (c, next) => {
     }
 
     const payload = await verifyFirebaseToken(token, projectId);
-    c.set("userId", payload.uid);
+    
+    // Firebase IDトークンではsubフィールドにユーザーIDが含まれる
+    const userId = payload.uid || payload.sub;
+    
+    if (!userId) {
+      return c.json(
+        {
+          error: "UNAUTHORIZED",
+          message: "認証トークンにユーザーIDが含まれていません",
+        },
+        401
+      );
+    }
+    
+    c.set("userId", userId);
     c.set("isAnonymous", isAnonymousUser(payload));
   } catch (error) {
     return c.json(

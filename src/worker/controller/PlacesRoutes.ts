@@ -82,6 +82,14 @@ export const placesRoutes = new Hono<Env>()
     async (c) => {
       const input = c.req.valid("json");
       const userId = c.get("userId");
+
+      if (!userId) {
+        return c.json(
+          { error: "UNAUTHORIZED", message: "認証が必要です" },
+          401
+        );
+      }
+
       const placeRepository = c.get("placeRepository");
       const userActionRepository = c.get("userActionRepository");
 
@@ -205,7 +213,7 @@ export const placesRoutes = new Hono<Env>()
       const { placeId } = c.req.valid("param");
       const { refresh } = c.req.valid("query");
       const placeRepository = c.get("placeRepository");
-      
+
       const googlePlacesApiKey = c.env.VITE_GOOGLE_MAPS_PLATFORM_SECRET;
       if (!googlePlacesApiKey) {
         return c.json(
@@ -218,7 +226,10 @@ export const placesRoutes = new Hono<Env>()
       }
 
       const googlePlacesService = new GooglePlacesService(googlePlacesApiKey);
-      const useCase = new GetPlaceDetailUseCase(placeRepository, googlePlacesService);
+      const useCase = new GetPlaceDetailUseCase(
+        placeRepository,
+        googlePlacesService
+      );
 
       // TODO: If refresh is true, fetch from Google Places API
       // For now, just return from cache
